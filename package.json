@@ -1,0 +1,89 @@
+{
+	"name": "gohugo",
+	"displayName": "GoHugo",
+	"keywords": [
+		"gohugo",
+		"hugo",
+		"static site generator",
+		"static",
+		"autocomplete",
+		"complete",
+		"intellisense"
+	],
+	"description": "Hugo Static Site Generator Commandline Helpers",
+	"version": "0.0.1",
+	"publisher": "phoenisx",
+	"license": "MIT",
+	"homepage": "https://github.com/willofindie/vscode-gohugo",
+	"bugs": {
+		"url": "https://github.com/willofindie/vscode-gohugo/issues"
+	},
+	"repository": {
+		"url": "https://github.com/willofindie/vscode-gohugo",
+		"type": "git"
+	},
+	"icon": "img/icon.png",
+	"engines": {
+		"vscode": "^1.46.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+    "*"
+  ],
+	"main": "./out/extension.js",
+	"preview": false,
+	"contributes": {
+		"commands": [
+			{
+				"command": "gohugo.version",
+				"title": "GoHugo: Get Version"
+			}
+		]
+	},
+	"scripts": {
+		"postinstall": "husky install",
+		"vscode:prepublish": "yarn run compile",
+		"pub": "vsce publish --yarn",
+		"precompile": "rimraf out",
+		"compile": "rollup -c --environment INCLUDE_DEPS,BUILD,NODE_ENV:production",
+		"watch": "rollup -c -m -w",
+		"pretest": "yarn run compile && yarn run lint",
+		"lint": "eslint src --ext ts",
+		"lint:fix": "eslint src --ext ts --fix",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@rollup/plugin-commonjs": "^18.0.0",
+		"@rollup/plugin-json": "^4.1.0",
+		"@rollup/plugin-node-resolve": "^11.2.1",
+		"@types/css": "^0.0.31",
+		"@types/glob": "^7.1.3",
+		"@types/mocha": "^8.0.4",
+		"@types/node": "^12.11.7",
+		"@types/vscode": "^1.46.0",
+		"@typescript-eslint/eslint-plugin": "^4.14.1",
+		"@typescript-eslint/parser": "^4.14.1",
+		"esbuild": "^0.10.2",
+		"eslint": "^7.19.0",
+		"eslint-config-prettier": "^8.1.0",
+		"eslint-plugin-prettier": "^3.3.1",
+		"glob": "^7.1.6",
+		"husky": "^5.2.0",
+		"lint-staged": "^10.5.4",
+		"mocha": "^8.3.2",
+		"prettier": "^2.2.1",
+		"rimraf": "^3.0.2",
+		"rollup": "^2.43.0",
+		"rollup-plugin-esbuild": "^3.0.2",
+		"typescript": "^4.1.3",
+		"vscode-test": "^1.5.0"
+	},
+	"dependencies": {},
+	"lint-staged": {
+		"*.{ts,tsx}": [
+			"npm run lint:fix"
+		]
+	}
+}

@@ -16,3 +16,12 @@ export const WORKSPACE_FOLDER = (() => {
     },
   };
 })();
+
+export const CACHE: {
+  HUGO_THEMES: {
+    url: string;
+    name: string;
+  }[];
+} = {
+  HUGO_THEMES: [],
+};

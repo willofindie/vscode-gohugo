@@ -6,6 +6,7 @@ import { spawn } from "child_process";
 import { resolve } from "path";
 import { promisify } from "util";
 import Zipper from "adm-zip";
+import { CACHE } from "./constants";
 
 const asyncReadFile = promisify(fs.readFile);
 const asyncWriteFile = promisify(fs.writeFile);
@@ -176,6 +177,11 @@ export const replaceTomlConfig = async (
  * https://docs.github.com/en/rest/reference/repos#get-repository-content
  */
 export const getHugoThemes = async () => {
+  if (CACHE.HUGO_THEMES.length > 0) {
+    // Since PPL tend to close the Editor once in a while
+    // Clearing Cache is not that imp as of now
+    return CACHE.HUGO_THEMES;
+  }
   const data = await fetch(
     "https://api.github.com/repos/gohugoio/hugoThemes/contents"
   ).then(
@@ -189,12 +195,13 @@ export const getHugoThemes = async () => {
         }[]
       >
   );
-  return data
+  CACHE.HUGO_THEMES = data
     .filter(item => item.type === "file" && item.size === 0 && item.html_url)
     .map(module => ({
       url: module.html_url.replace(/tree\/\b[0-9a-f]{5,40}\b/, ""),
       name: module.name,
     }));
+  return CACHE.HUGO_THEMES;
 };
 
 export class CancelledError extends Error {

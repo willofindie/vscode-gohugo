@@ -1,24 +1,28 @@
-import { Uri, window, workspace } from "vscode";
+import { Uri, workspace } from "vscode";
 import { resolve } from "path";
 import {
+  deleteFile,
   downloadTheme,
   executeHugo,
   generateThemeUri,
   getPlatformName,
   getUserInput,
   ParseFn,
+  renameFile,
+  replaceTomlConfig,
   showMessage,
   toStringArray,
   unzip,
 } from "./utils";
 import { WORKSPACE_FOLDER } from "./constants";
+import { existsSync } from "fs";
 
 const onError = (data: Buffer | string) => {
   const _data = data.toString();
   if (/command not found/.test(_data)) {
     console.log("Error: ", "Command Not Found: Please install `Hugo`");
   }
-  window.showErrorMessage(data.toString());
+  showMessage(data.toString(), { error: true });
 };
 
 const parseVersion: ParseFn = (fn, showModal = true) => outputs =>
@@ -26,7 +30,7 @@ const parseVersion: ParseFn = (fn, showModal = true) => outputs =>
     `Command: ${outputs[0]}\nVersion: ${
       outputs[1]
     }\nPlatform: ${getPlatformName()}`,
-    showModal
+    { modal: showModal }
   );
 export const getVersion = () => {
   const observer = executeHugo("version");
@@ -72,20 +76,57 @@ export const createNewSite = async () => {
   }
 };
 
-export const addTheme = async () => {
+const getAndUpdateTheme = async (gitUrl?: string) => {
+  if (!gitUrl) {
+    return;
+  }
+  const themesPath = resolve(WORKSPACE_FOLDER.get(), "themes");
+  const configTomlPath = resolve(WORKSPACE_FOLDER.get(), "config.toml");
+  if (!existsSync(configTomlPath)) {
+    showMessage("Current Workspace is not a HUGO Project", { error: true });
+    return;
+  }
   try {
-    const projectName = await getUserInput({
-      prompt: `Enter theme repo name`,
-      placeHolder: "gohugo-theme-ananke",
-      defaultRes: "gohugo-theme-ananke",
-    });
-    const downloadedFilePath = await downloadTheme(
-      "temp_theme.hugo.zip",
-      generateThemeUri(projectName)
+    const matcher = gitUrl.match(
+      /https:\/\/github.com\/[\w\d][\w\d-]*\/(?<name>[\w\d-]+)/
     );
-    await unzip(downloadedFilePath, resolve(WORKSPACE_FOLDER.get(), "themes"));
-    showMessage(`Download theme to: ${downloadedFilePath}`);
+    const projectName =
+      matcher && matcher.groups ? matcher.groups.name : "active-theme";
+    const downloadedFolder = resolve(themesPath, projectName);
+    if (!existsSync(downloadedFolder)) {
+      const downloaded = await downloadTheme(
+        "temp_theme.hugo.zip",
+        generateThemeUri(gitUrl)
+      );
+      if (downloaded) {
+        await unzip(downloaded.path, themesPath);
+        await deleteFile(downloaded.path);
+        await renameFile(
+          resolve(themesPath, downloaded.name),
+          downloadedFolder
+        );
+        await replaceTomlConfig(configTomlPath, "theme", projectName);
+        showMessage(`Active Theme: ${projectName}`);
+      }
+    } else {
+      showMessage(`Theme: ${projectName}, Already Exists`);
+    }
   } catch (e) {
     // NOOP;
+    showMessage(e.message, { error: true });
   }
+};
+
+export const addTheme = async () => {
+  let gitUrl;
+  try {
+    gitUrl = await getUserInput({
+      prompt: `Enter theme repo name`,
+      placeHolder: "https://github.com/theNewDynamic/gohugo-theme-ananke",
+      defaultRes: "https://github.com/theNewDynamic/gohugo-theme-ananke",
+    });
+  } catch (_) {
+    // NOOP
+  }
+  await getAndUpdateTheme(gitUrl);
 };

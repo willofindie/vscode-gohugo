@@ -1,5 +1,5 @@
 import { window } from "vscode";
-import { rmdir, writeFile } from "fs";
+import fs from "fs";
 import fetch from "node-fetch";
 import { platform, homedir } from "os";
 import { spawn } from "child_process";
@@ -7,8 +7,12 @@ import { resolve } from "path";
 import { promisify } from "util";
 import Zipper from "adm-zip";
 
-const asyncWriteFile = promisify(writeFile);
-const asyncRmdir = promisify(rmdir);
+const asyncReadFile = promisify(fs.readFile);
+const asyncWriteFile = promisify(fs.writeFile);
+const asyncAppendFile = promisify(fs.appendFile);
+const asyncRmdir = promisify(fs.rmdir);
+const asyncRemove = promisify(fs.unlink);
+const asyncRename = promisify(fs.rename);
 
 const EXECUTABLE = "hugo";
 export const executeHugo = (...args: string[]) => {
@@ -39,10 +43,19 @@ export type ShowFn = (message: string, ...options: any[]) => string;
  * @param data Message to display in Info Popupup
  * @param modal Boolean to make Popup display as Modal.
  */
-export const showMessage: ShowFn = (data: string, modal = false) => {
-  window.showInformationMessage(data, {
-    modal,
-  });
+export const showMessage: ShowFn = (
+  data: string,
+  { modal = false, error = false } = {}
+) => {
+  if (!error) {
+    window.showInformationMessage(data, {
+      modal,
+    });
+  } else {
+    window.showErrorMessage(data, {
+      modal,
+    });
+  }
   return data;
 };
 
@@ -59,42 +72,91 @@ export const getPlatformName = () => {
   }
 };
 
-export const generateThemeUri = (repo: string) =>
-  `https://github.com/theNewDynamic/${repo}/archive/master.zip`;
-//
+type DownloadedData = {
+  path: string;
+  name: string;
+};
+export const generateThemeUri = (repo: string) => `${repo}/archive/master.zip`;
+
 export const downloadTheme = async (
   filename: string,
   uri: string
-): Promise<string> => {
+): Promise<DownloadedData | null> => {
   try {
     const filePath = resolve(homedir(), filename);
     const data = await fetch(uri, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/zip" },
     }).then(res => {
-      return res.buffer();
+      const disposition = res.headers.get("content-disposition");
+      const matched = disposition?.match(/filename=(\w[\w-]+)\.zip/);
+      const name = matched ? matched[1] : "";
+      return res.buffer().then(buffer => ({
+        binary: Buffer.from(buffer),
+        name,
+      }));
     });
-    await asyncWriteFile(filePath, data);
-    return filePath;
+    await asyncWriteFile(filePath, data.binary);
+    return {
+      path: filePath,
+      name: data.name,
+    };
   } catch (e) {
     window.showErrorMessage(`Unable to download theme from: ${uri}`);
-    return "";
+    return null;
   }
 };
 
 export const unzip = async (src: string, dest: string) =>
-  new Promise(res => {
+  new Promise((res, rej) => {
     const zipper = new Zipper(src);
     zipper.extractAllToAsync(dest, true, err => {
       if (err) {
         window.showErrorMessage(`Failed to extract contents: ${src}`);
+        rej(err);
       }
-      (async () => {
-        await asyncRmdir(src);
-        res();
-      })();
+      res();
     });
   });
+
+export const deleteFile = (filename: string) => asyncRemove(filename);
+export const renameFile = async (src: string, dest: string) => {
+  if (!fs.existsSync(dest)) {
+    return await asyncRename(src, dest);
+  } else {
+    await asyncRmdir(dest, { recursive: true });
+    return await asyncRename(src, dest);
+  }
+};
+
+/**
+ * This method will help replace a single lined key value pair in
+ * Hugo Toml File, OR append a new Property=Value line to the file.
+ * Since, there is no direct way of manipulating
+ * TOML files as of now, I am going this way
+ *
+ * @param tomlPath Path to the Toml file we need to change
+ * @param property Key or Property name to replace the value for
+ * @param value new value that will replace the old one
+ */
+export const replaceTomlConfig = async (
+  tomlPath: string,
+  property: string,
+  value: string
+) => {
+  const regex = new RegExp(`${property}\\s*=\\s*(.*)`, "g");
+  const toml = await asyncReadFile(tomlPath, { encoding: "utf8" });
+  const newData = `${property} = "${value}"`;
+  // Following is not fullproof. It will make every value a string.
+  // Anyways works in this case for now.
+  if (toml.match(regex)) {
+    await asyncWriteFile(tomlPath, toml.replace(regex, newData), {
+      encoding: "utf8",
+    });
+  } else {
+    await asyncAppendFile(tomlPath, newData, { encoding: "utf8" });
+  }
+};
 
 export class CancelledError extends Error {
   name = "Cancelled";

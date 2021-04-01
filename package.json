@@ -32,7 +32,8 @@
 	"activationEvents": [
 		"onCommand:gohugo.version",
 		"onCommand:gohugo.newsite",
-		"onCommand:gohugo.addTheme"
+		"onCommand:gohugo.addTheme",
+		"onCommand:gohugo.selectTheme"
 	],
 	"main": "./out/extension.js",
 	"preview": false,
@@ -49,6 +50,10 @@
 			{
 				"command": "gohugo.addTheme",
 				"title": "GoHugo: Add Theme"
+			},
+			{
+				"command": "gohugo.selectTheme",
+				"title": "GoHugo: Select Theme"
 			}
 		]
 	},

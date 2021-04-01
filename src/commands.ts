@@ -1,10 +1,11 @@
-import { Uri, workspace } from "vscode";
+import { QuickPickItem, Uri, window, workspace } from "vscode";
 import { resolve } from "path";
 import {
   deleteFile,
   downloadTheme,
   executeHugo,
   generateThemeUri,
+  getHugoThemes,
   getPlatformName,
   getUserInput,
   ParseFn,
@@ -125,6 +126,24 @@ export const addTheme = async () => {
       placeHolder: "https://github.com/theNewDynamic/gohugo-theme-ananke",
       defaultRes: "https://github.com/theNewDynamic/gohugo-theme-ananke",
     });
+  } catch (_) {
+    // NOOP
+  }
+  await getAndUpdateTheme(gitUrl);
+};
+
+export const selectTheme = async () => {
+  let gitUrl;
+  try {
+    const items = await getHugoThemes();
+    const pickerItems = items.map<QuickPickItem>(item => ({
+      label: item.name,
+      description: item.url,
+    }));
+    const selected = await window.showQuickPick(pickerItems, {
+      canPickMany: false,
+    });
+    gitUrl = selected?.description;
   } catch (_) {
     // NOOP
   }

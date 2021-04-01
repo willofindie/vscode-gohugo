@@ -9,7 +9,8 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(
     commands.registerCommand(commandNames[i++].command, COMMANDS.getVersion),
     commands.registerCommand(commandNames[i++].command, COMMANDS.createNewSite),
-    commands.registerCommand(commandNames[i++].command, COMMANDS.addTheme)
+    commands.registerCommand(commandNames[i++].command, COMMANDS.addTheme),
+    commands.registerCommand(commandNames[i++].command, COMMANDS.selectTheme)
   );
 
   context.subscriptions.push(

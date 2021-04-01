@@ -1,6 +1,6 @@
 import { window } from "vscode";
 import fs from "fs";
-import fetch from "node-fetch";
+import nodeFetch from "node-fetch";
 import { platform, homedir } from "os";
 import { spawn } from "child_process";
 import { resolve } from "path";
@@ -13,6 +13,16 @@ const asyncAppendFile = promisify(fs.appendFile);
 const asyncRmdir = promisify(fs.rmdir);
 const asyncRemove = promisify(fs.unlink);
 const asyncRename = promisify(fs.rename);
+type FetchFn = (
+  url: string,
+  options?: nodeFetch.RequestInit
+) => Promise<nodeFetch.Response>;
+const fetch: FetchFn = (url, options = {}) =>
+  nodeFetch(url, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    ...options,
+  });
 
 const EXECUTABLE = "hugo";
 export const executeHugo = (...args: string[]) => {
@@ -85,7 +95,6 @@ export const downloadTheme = async (
   try {
     const filePath = resolve(homedir(), filename);
     const data = await fetch(uri, {
-      method: "GET",
       headers: { "Content-Type": "application/zip" },
     }).then(res => {
       const disposition = res.headers.get("content-disposition");
@@ -156,6 +165,36 @@ export const replaceTomlConfig = async (
   } else {
     await asyncAppendFile(tomlPath, newData, { encoding: "utf8" });
   }
+};
+
+/**
+ * This Function will help fetch
+ * and filter the list of all themes present
+ * in hugoThemes Repo.
+ *
+ * Details for Github REST API:
+ * https://docs.github.com/en/rest/reference/repos#get-repository-content
+ */
+export const getHugoThemes = async () => {
+  const data = await fetch(
+    "https://api.github.com/repos/gohugoio/hugoThemes/contents"
+  ).then(
+    res =>
+      res.json() as Promise<
+        {
+          html_url: string;
+          name: string;
+          size: number;
+          type: "file" | "dir";
+        }[]
+      >
+  );
+  return data
+    .filter(item => item.type === "file" && item.size === 0 && item.html_url)
+    .map(module => ({
+      url: module.html_url.replace(/tree\/\b[0-9a-f]{5,40}\b/, ""),
+      name: module.name,
+    }));
 };
 
 export class CancelledError extends Error {

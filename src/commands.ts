@@ -27,6 +27,7 @@ const onError = (data: Buffer | string) => {
   showMessage(data.toString(), { status: 2 });
 };
 
+//#region Get Hugo Version
 const parseVersion: ParseFn = (fn, showModal = true) => outputs =>
   fn(
     `Command: ${outputs[0]}\nVersion: ${
@@ -40,7 +41,9 @@ export const getVersion = () => {
   observer.stderr.once("data", onError);
   observer.stderr.once("error", onError);
 };
+//#endregion Get Hugo Version
 
+//#region Create New Hugo Site Project
 const parseNewSite: ParseFn = (
   fn,
   projectName: string,
@@ -77,7 +80,9 @@ export const createNewSite = async () => {
     // NOOP;
   }
 };
+//#endregion Create New Hugo Site Project
 
+//#region Add/Select -> Update Theme
 const getAndUpdateTheme = async (gitUrl?: string) => {
   if (!gitUrl) {
     return;
@@ -152,7 +157,9 @@ export const selectTheme = async () => {
   }
   await getAndUpdateTheme(gitUrl);
 };
+//#endregion Add/Select -> Update Theme
 
+//#region Start/Stop Server Commands
 const parseServerOutput: ParseFn = fn => outputs => {
   const [get] = getConfig();
   const Config = get();
@@ -206,4 +213,38 @@ export const stopServer = async (
       { status: 2 }
     );
   }
+};
+//#endregion Start/Stop Server Commands
+
+const parseContentOutput: ParseFn = fn => outputs => fn(outputs[0]);
+export const createNewContent = async () => {
+  let contentPath;
+  try {
+    contentPath = await getUserInput({
+      prompt: `Enter content path`,
+      placeHolder: "posts/index.md",
+      defaultRes: "posts/index.md",
+    });
+  } catch (_) {
+    // NOOP
+  }
+
+  if (!contentPath) {
+    return;
+  }
+
+  const [get] = getConfig();
+  const Config = get();
+
+  const observer = executeHugo(
+    "new",
+    `--config ${Config.configPath}`,
+    contentPath
+  );
+  observer.stdout.once(
+    "data",
+    toStringArray(parseContentOutput(showMessage), /\r?\n/)
+  );
+  observer.stderr.once("data", onError);
+  observer.stderr.once("error", onError);
 };

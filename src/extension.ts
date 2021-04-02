@@ -18,7 +18,11 @@ export function activate(context: ExtensionContext) {
     commands.registerCommand(commandNames[i++].command, COMMANDS.addTheme),
     commands.registerCommand(commandNames[i++].command, COMMANDS.selectTheme),
     commands.registerCommand(commandNames[i++].command, COMMANDS.startServer),
-    commands.registerCommand(commandNames[i++].command, COMMANDS.stopServer)
+    commands.registerCommand(commandNames[i++].command, COMMANDS.stopServer),
+    commands.registerCommand(
+      commandNames[i++].command,
+      COMMANDS.createNewContent
+    )
   );
 
   context.subscriptions.push(

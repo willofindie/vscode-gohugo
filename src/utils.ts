@@ -27,7 +27,11 @@ const fetch: FetchFn = (url, options = {}) =>
 
 const EXECUTABLE = "hugo";
 export const executeHugo = (...args: string[]) => {
-  return spawn(EXECUTABLE, args, { shell: true, cwd: WORKSPACE_FOLDER.get() });
+  return spawn(EXECUTABLE, args, {
+    shell: true,
+    cwd: WORKSPACE_FOLDER.get(),
+    windowsHide: true,
+  });
 };
 
 type ParseFn$1 = (outputs: string[]) => Promise<string>;

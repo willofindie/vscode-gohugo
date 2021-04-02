@@ -9,3 +9,10 @@
 
 Command Line helper in VSCode for Hugo Static Site generator.
 
+
+
+## Issues
+
+- Current version works only with `.toml` configurations.
+  - Will fix this in later releases.
+

@@ -33,7 +33,8 @@
 		"onCommand:gohugo.addTheme",
 		"onCommand:gohugo.selectTheme",
 		"onCommand:gohugo.startServer",
-		"onCommand:gohugo.stopServer"
+		"onCommand:gohugo.stopServer",
+		"onCommand:gohugo.createContent"
 	],
 	"main": "./out/extension.js",
 	"preview": false,
@@ -77,6 +78,10 @@
 			{
 				"command": "gohugo.stopServer",
 				"title": "GoHugo: Stop Server"
+			},
+			{
+				"command": "gohugo.createContent",
+				"title": "GoHugo: Create New Content"
 			}
 		]
 	},

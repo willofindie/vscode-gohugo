@@ -15,7 +15,7 @@ import {
   toStringArray,
   unzip,
 } from "./utils";
-import { WORKSPACE_FOLDER } from "./constants";
+import { getConfig, WORKSPACE_FOLDER } from "./constants";
 import { existsSync } from "fs";
 
 const onError = (data: Buffer | string) => {
@@ -81,8 +81,9 @@ const getAndUpdateTheme = async (gitUrl?: string) => {
   if (!gitUrl) {
     return;
   }
+  const [Config] = getConfig();
   const themesPath = resolve(WORKSPACE_FOLDER.get(), "themes");
-  const configTomlPath = resolve(WORKSPACE_FOLDER.get(), "config.toml");
+  const configTomlPath = resolve(WORKSPACE_FOLDER.get(), Config.configPath);
   if (!existsSync(configTomlPath)) {
     showMessage("Current Workspace is not a HUGO Project", { error: true });
     return;

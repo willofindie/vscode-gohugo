@@ -17,6 +17,25 @@ export const WORKSPACE_FOLDER = (() => {
   };
 })();
 
+export const EXTENSION_NAME = "gohugo";
+
+export interface Config {
+  configPath: string;
+}
+export const getConfig = (() => {
+  let configs: Config;
+  const update = () => {
+    const config = workspace.getConfiguration(EXTENSION_NAME);
+    configs = {
+      configPath: config.get<string>("config") || "config.toml",
+    };
+    return configs;
+  };
+  configs = update();
+
+  return () => [configs, update] as [Config, () => Config];
+})();
+
 export const CACHE: {
   HUGO_THEMES: {
     url: string;

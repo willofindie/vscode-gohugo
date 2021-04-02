@@ -1,9 +1,11 @@
 import { commands, ExtensionContext, workspace } from "vscode";
 import * as COMMANDS from "./commands";
 import packageJSON from "../package.json";
-import { WORKSPACE_FOLDER } from "./constants";
+import { getConfig, WORKSPACE_FOLDER } from "./constants";
 
 export function activate(context: ExtensionContext) {
+  const [, update] = getConfig();
+  update();
   const commandNames = packageJSON.contributes.commands;
   let i = 0;
   context.subscriptions.push(

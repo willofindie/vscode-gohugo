@@ -4,11 +4,9 @@
 	"keywords": [
 		"gohugo",
 		"hugo",
-		"static site generator",
 		"static",
-		"autocomplete",
-		"complete",
-		"intellisense"
+		"site",
+		"generator"
 	],
 	"description": "Hugo Static Site Generator Commandline Helpers",
 	"version": "0.0.1",
@@ -38,6 +36,16 @@
 	"main": "./out/extension.js",
 	"preview": false,
 	"contributes": {
+		"configuration": {
+			"title": "GoHugo - Command Line Helpers",
+			"properties": {
+				"gohugo.config": {
+					"type": "string",
+					"default": "config.toml",
+					"description": "Relative path to your custom Hugo Config File"
+				}
+			}
+		},
 		"commands": [
 			{
 				"command": "gohugo.version",

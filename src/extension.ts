@@ -1,11 +1,15 @@
 import { commands, ExtensionContext, workspace } from "vscode";
 import * as COMMANDS from "./commands";
 import packageJSON from "../package.json";
-import { getConfig, WORKSPACE_FOLDER } from "./constants";
+import { CACHE, getConfig, WORKSPACE_FOLDER } from "./constants";
 
-export function activate(context: ExtensionContext) {
+const setup = () => {
   const [, update] = getConfig();
   update();
+};
+
+export function activate(context: ExtensionContext) {
+  setup();
   const commandNames = packageJSON.contributes.commands;
   let i = 0;
   context.subscriptions.push(
@@ -25,6 +29,13 @@ export function activate(context: ExtensionContext) {
         folderPath = e.added[0].uri.path;
       }
       WORKSPACE_FOLDER.set(folderPath);
+      setup();
     })
   );
+}
+
+export function deactivate() {
+  if (CACHE.SERVER_PROC_ID) {
+    COMMANDS.stopServer();
+  }
 }

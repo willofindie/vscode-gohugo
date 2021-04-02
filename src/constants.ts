@@ -39,7 +39,9 @@ export const getConfig = (() => {
   };
   configs = update();
 
-  return () => [configs, update] as [Config, () => Config];
+  const get = () => configs;
+
+  return () => [get, update] as [() => Config, () => Config];
 })();
 
 export const CACHE: {

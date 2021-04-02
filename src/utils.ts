@@ -6,7 +6,7 @@ import { spawn } from "child_process";
 import { resolve } from "path";
 import { promisify } from "util";
 import Zipper from "adm-zip";
-import { CACHE } from "./constants";
+import { CACHE, WORKSPACE_FOLDER } from "./constants";
 
 const asyncReadFile = promisify(fs.readFile);
 const asyncWriteFile = promisify(fs.writeFile);
@@ -27,7 +27,7 @@ const fetch: FetchFn = (url, options = {}) =>
 
 const EXECUTABLE = "hugo";
 export const executeHugo = (...args: string[]) => {
-  return spawn(EXECUTABLE, args, { shell: true });
+  return spawn(EXECUTABLE, args, { shell: true, cwd: WORKSPACE_FOLDER.get() });
 };
 
 type ParseFn$1 = (outputs: string[]) => Promise<string>;
@@ -44,15 +44,20 @@ export const toStringArray = (f: ParseFn$1, splitter = /\s+/) => (
   data: Buffer | string
 ) => f(data.toString().split(splitter));
 
-export type ShowFn = (
-  message: string,
+export interface ShowMessageOptions {
+  modal?: boolean;
   /**
    * Status:
    * - 0: means success
    * - 1: means warn
    * - 2: means error
    */
-  options?: { modal?: boolean; status?: 0 | 1 | 2 }
+  status?: 0 | 1 | 2;
+}
+export type ShowFn = (
+  message: string,
+
+  options?: ShowMessageOptions
 ) => Promise<string>;
 /**
  *  Show Info Popup or Modal
@@ -134,7 +139,7 @@ export const downloadTheme = async (
 };
 
 export const unzip = async (src: string, dest: string) =>
-  new Promise((res, rej) => {
+  new Promise<void>((res, rej) => {
     const zipper = new Zipper(src);
     zipper.extractAllToAsync(dest, true, err => {
       if (err) {

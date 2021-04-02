@@ -12,6 +12,7 @@ import {
   renameFile,
   replaceTomlConfig,
   showMessage,
+  ShowMessageOptions,
   toStringArray,
   unzip,
 } from "./utils";
@@ -81,7 +82,8 @@ const getAndUpdateTheme = async (gitUrl?: string) => {
   if (!gitUrl) {
     return;
   }
-  const [Config] = getConfig();
+  const [get] = getConfig();
+  const Config = get();
   const themesPath = resolve(WORKSPACE_FOLDER.get(), "themes");
   const configTomlPath = resolve(WORKSPACE_FOLDER.get(), Config.configPath);
   if (!existsSync(configTomlPath)) {
@@ -152,7 +154,8 @@ export const selectTheme = async () => {
 };
 
 const parseServerOutput: ParseFn = fn => outputs => {
-  const [Config] = getConfig();
+  const [get] = getConfig();
+  const Config = get();
   for (const line of outputs) {
     if (/Web Server is available at/i.test(line)) {
       return fn(`Server Running at http://localhost:${Config.port}/`);
@@ -163,26 +166,32 @@ const parseServerOutput: ParseFn = fn => outputs => {
   return Promise.resolve("");
 };
 export const startServer = async () => {
-  const [Config] = getConfig();
-  // TODO: Relative paths are not working in spawed process
+  const [get] = getConfig();
+  const Config = get();
+  if (CACHE.SERVER_PROC_ID) {
+    stopServer(
+      `Stopped already running server at http://localhost:${Config.port}/`,
+      { status: 1 }
+    );
+  }
   CACHE.SERVER_PROC_ID = executeHugo(
     "server",
     "-D",
     `--config ${Config.configPath}`,
     `--port ${Config.port}`
   );
-  CACHE.SERVER_PROC_ID.stdout.once(
+  CACHE.SERVER_PROC_ID.stdout.on(
     "data",
     toStringArray(parseServerOutput(showMessage), /\r?\n/)
   );
-  CACHE.SERVER_PROC_ID.stderr.once("data", onError);
-  CACHE.SERVER_PROC_ID.stderr.once("error", onError);
-  CACHE.SERVER_PROC_ID.on("close", () => {
-    CACHE.SERVER_PROC_ID = null;
-  });
+  CACHE.SERVER_PROC_ID.stderr.on("data", onError);
+  CACHE.SERVER_PROC_ID.stderr.on("error", onError);
 };
 
-export const stopServer = async () => {
+export const stopServer = async (
+  msg?: string,
+  options?: ShowMessageOptions
+) => {
   if (!CACHE.SERVER_PROC_ID) {
     showMessage(`No Server Running`, { status: 1 });
     return;
@@ -190,7 +199,7 @@ export const stopServer = async () => {
 
   if (CACHE.SERVER_PROC_ID.kill("SIGTERM")) {
     CACHE.SERVER_PROC_ID = null;
-    showMessage(`Server Stopped: Success`);
+    await showMessage(msg || `Server Stopped: Success`, options);
   } else {
     showMessage(
       `Unable to Stop Server running at PID: ${CACHE.SERVER_PROC_ID.pid}`,

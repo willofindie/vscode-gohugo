@@ -15,7 +15,7 @@ import {
   toStringArray,
   unzip,
 } from "./utils";
-import { getConfig, WORKSPACE_FOLDER } from "./constants";
+import { CACHE, getConfig, WORKSPACE_FOLDER } from "./constants";
 import { existsSync } from "fs";
 
 const onError = (data: Buffer | string) => {
@@ -23,7 +23,7 @@ const onError = (data: Buffer | string) => {
   if (/command not found/.test(_data)) {
     console.log("Error: ", "Command Not Found: Please install `Hugo`");
   }
-  showMessage(data.toString(), { error: true });
+  showMessage(data.toString(), { status: 2 });
 };
 
 const parseVersion: ParseFn = (fn, showModal = true) => outputs =>
@@ -85,7 +85,7 @@ const getAndUpdateTheme = async (gitUrl?: string) => {
   const themesPath = resolve(WORKSPACE_FOLDER.get(), "themes");
   const configTomlPath = resolve(WORKSPACE_FOLDER.get(), Config.configPath);
   if (!existsSync(configTomlPath)) {
-    showMessage("Current Workspace is not a HUGO Project", { error: true });
+    showMessage("Current Workspace is not a HUGO Project", { status: 2 });
     return;
   }
   try {
@@ -115,7 +115,7 @@ const getAndUpdateTheme = async (gitUrl?: string) => {
     }
   } catch (e) {
     // NOOP;
-    showMessage(e.message, { error: true });
+    showMessage(e.message, { status: 2 });
   }
 };
 
@@ -149,4 +149,52 @@ export const selectTheme = async () => {
     // NOOP
   }
   await getAndUpdateTheme(gitUrl);
+};
+
+const parseServerOutput: ParseFn = fn => outputs => {
+  const [Config] = getConfig();
+  for (const line of outputs) {
+    if (/Web Server is available at/i.test(line)) {
+      return fn(`Server Running at http://localhost:${Config.port}/`);
+    } else if (/error/i.test(line)) {
+      return fn(`${line}`, { status: 2 });
+    }
+  }
+  return Promise.resolve("");
+};
+export const startServer = async () => {
+  const [Config] = getConfig();
+  // TODO: Relative paths are not working in spawed process
+  CACHE.SERVER_PROC_ID = executeHugo(
+    "server",
+    "-D",
+    `--config ${Config.configPath}`,
+    `--port ${Config.port}`
+  );
+  CACHE.SERVER_PROC_ID.stdout.once(
+    "data",
+    toStringArray(parseServerOutput(showMessage), /\r?\n/)
+  );
+  CACHE.SERVER_PROC_ID.stderr.once("data", onError);
+  CACHE.SERVER_PROC_ID.stderr.once("error", onError);
+  CACHE.SERVER_PROC_ID.on("close", () => {
+    CACHE.SERVER_PROC_ID = null;
+  });
+};
+
+export const stopServer = async () => {
+  if (!CACHE.SERVER_PROC_ID) {
+    showMessage(`No Server Running`, { status: 1 });
+    return;
+  }
+
+  if (CACHE.SERVER_PROC_ID.kill("SIGTERM")) {
+    CACHE.SERVER_PROC_ID = null;
+    showMessage(`Server Stopped: Success`);
+  } else {
+    showMessage(
+      `Unable to Stop Server running at PID: ${CACHE.SERVER_PROC_ID.pid}`,
+      { status: 2 }
+    );
+  }
 };

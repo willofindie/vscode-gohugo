@@ -1,4 +1,6 @@
+import { ChildProcessWithoutNullStreams } from "child_process";
 import { homedir } from "os";
+import { resolve } from "path";
 import { workspace } from "vscode";
 
 export const WORKSPACE_FOLDER = (() => {
@@ -21,13 +23,17 @@ export const EXTENSION_NAME = "gohugo";
 
 export interface Config {
   configPath: string;
+  port: number;
 }
 export const getConfig = (() => {
   let configs: Config;
   const update = () => {
     const config = workspace.getConfiguration(EXTENSION_NAME);
+    const dir = WORKSPACE_FOLDER.get();
+    const configName = config.get<string>("config") || "config.toml";
     configs = {
-      configPath: config.get<string>("config") || "config.toml",
+      configPath: resolve(dir, configName),
+      port: config.get<number>("port") || 3000,
     };
     return configs;
   };
@@ -41,6 +47,8 @@ export const CACHE: {
     url: string;
     name: string;
   }[];
+  SERVER_PROC_ID: ChildProcessWithoutNullStreams | null;
 } = {
   HUGO_THEMES: [],
+  SERVER_PROC_ID: null,
 };

@@ -30,11 +30,8 @@ export const executeHugo = (...args: string[]) => {
   return spawn(EXECUTABLE, args, { shell: true });
 };
 
-export type ParseFn = (
-  fn: ShowFn,
-  ...options: any[]
-) => (outputs: string[]) => string;
-type ParseFn$1 = (outputs: string[]) => string;
+type ParseFn$1 = (outputs: string[]) => Promise<string>;
+export type ParseFn = (fn: ShowFn, ...options: any[]) => ParseFn$1;
 /**
  * This Method helps to split the stdout string into
  * string[], which later can be consumed by Composable
@@ -47,27 +44,46 @@ export const toStringArray = (f: ParseFn$1, splitter = /\s+/) => (
   data: Buffer | string
 ) => f(data.toString().split(splitter));
 
-export type ShowFn = (message: string, ...options: any[]) => string;
+export type ShowFn = (
+  message: string,
+  /**
+   * Status:
+   * - 0: means success
+   * - 1: means warn
+   * - 2: means error
+   */
+  options?: { modal?: boolean; status?: 0 | 1 | 2 }
+) => Promise<string>;
 /**
  *  Show Info Popup or Modal
  *
  * @param data Message to display in Info Popupup
- * @param modal Boolean to make Popup display as Modal.
+ * @param props options to be se
  */
-export const showMessage: ShowFn = (
+export const showMessage: ShowFn = async (
   data: string,
-  { modal = false, error = false } = {}
+  { modal = false, status = 0 } = {}
 ) => {
-  if (!error) {
-    window.showInformationMessage(data, {
-      modal,
-    });
-  } else {
-    window.showErrorMessage(data, {
-      modal,
-    });
+  switch (status) {
+    case 1:
+      return (
+        (await window.showWarningMessage(data, {
+          modal,
+        })) || data
+      );
+    case 2:
+      return (
+        (await window.showErrorMessage(data, {
+          modal,
+        })) || data
+      );
+    default:
+      return (
+        (await window.showInformationMessage(data, {
+          modal,
+        })) || data
+      );
   }
-  return data;
 };
 
 export const getPlatformName = () => {

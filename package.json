@@ -31,7 +31,9 @@
 		"onCommand:gohugo.version",
 		"onCommand:gohugo.newsite",
 		"onCommand:gohugo.addTheme",
-		"onCommand:gohugo.selectTheme"
+		"onCommand:gohugo.selectTheme",
+		"onCommand:gohugo.startServer",
+		"onCommand:gohugo.stopServer"
 	],
 	"main": "./out/extension.js",
 	"preview": false,
@@ -43,6 +45,11 @@
 					"type": "string",
 					"default": "config.toml",
 					"description": "Relative path to your custom Hugo Config File"
+				},
+				"gohugo.port": {
+					"type": "number",
+					"default": 3000,
+					"description": "Hugo development server PORT"
 				}
 			}
 		},
@@ -62,6 +69,14 @@
 			{
 				"command": "gohugo.selectTheme",
 				"title": "GoHugo: Select Theme"
+			},
+			{
+				"command": "gohugo.startServer",
+				"title": "GoHugo: Start Server"
+			},
+			{
+				"command": "gohugo.stopServer",
+				"title": "GoHugo: Stop Server"
 			}
 		]
 	},

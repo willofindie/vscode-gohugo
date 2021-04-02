@@ -248,3 +248,40 @@ export const createNewContent = async () => {
   observer.stderr.once("data", onError);
   observer.stderr.once("error", onError);
 };
+
+//#region Prod Build
+const parseBuildOutput = (outputs: string[]) => {
+  const messages: string[] = [];
+  for (const output of outputs) {
+    const matched = output.match(
+      /\s*(?<key>[\w\s-]*?)[\s\t]+\|[\s\t]+(?<value>\d+)/
+    );
+    if (matched && matched.groups) {
+      messages.push(
+        `${matched.groups.key.padEnd(18)}: ${matched.groups.value}`
+      );
+    }
+  }
+  return messages;
+};
+export const build = () => {
+  const [get] = getConfig();
+  const Config = get();
+  const observer = executeHugo(`--config ${Config.configPath}`);
+  let messages: string[] = ["Build Success:\n"];
+  observer.stdout.on("data", (data: Buffer) => {
+    const output = data.toString("utf8");
+    const msgs = parseBuildOutput(output.split(/\r?\n/));
+    messages = messages.concat(msgs);
+  });
+  observer.stderr.on("data", onError);
+  observer.stderr.on("error", onError);
+  observer.once("close", (code: number) => {
+    setTimeout(() => {
+      if (code === 0) {
+        showMessage(messages.join("\n"), { modal: true });
+      }
+    }, 0);
+  });
+};
+//#endregion Prod Build

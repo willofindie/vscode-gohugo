@@ -22,7 +22,8 @@ export function activate(context: ExtensionContext) {
     commands.registerCommand(
       commandNames[i++].command,
       COMMANDS.createNewContent
-    )
+    ),
+    commands.registerCommand(commandNames[i++].command, COMMANDS.build)
   );
 
   context.subscriptions.push(

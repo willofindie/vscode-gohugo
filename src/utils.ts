@@ -34,7 +34,7 @@ export const executeHugo = (...args: string[]) => {
   });
 };
 
-type ParseFn$1 = (outputs: string[]) => Promise<string>;
+type ParseFn$1 = (outputs: string[]) => Promise<string> | string;
 export type ParseFn = (fn: ShowFn, ...options: any[]) => ParseFn$1;
 /**
  * This Method helps to split the stdout string into
@@ -46,7 +46,7 @@ export type ParseFn = (fn: ShowFn, ...options: any[]) => ParseFn$1;
  */
 export const toStringArray = (f: ParseFn$1, splitter = /\s+/) => (
   data: Buffer | string
-) => f(data.toString().split(splitter));
+) => f(data.toString("utf8").split(splitter));
 
 export interface ShowMessageOptions {
   modal?: boolean;

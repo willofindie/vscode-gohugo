@@ -34,7 +34,8 @@
 		"onCommand:gohugo.selectTheme",
 		"onCommand:gohugo.startServer",
 		"onCommand:gohugo.stopServer",
-		"onCommand:gohugo.createContent"
+		"onCommand:gohugo.createContent",
+		"onCommand:gohugo.build"
 	],
 	"main": "./out/extension.js",
 	"preview": false,
@@ -82,6 +83,10 @@
 			{
 				"command": "gohugo.createContent",
 				"title": "GoHugo: Create New Content"
+			},
+			{
+				"command": "gohugo.build",
+				"title": "GoHugo: Build"
 			}
 		]
 	},

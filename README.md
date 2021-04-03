@@ -9,6 +9,15 @@
 
 Command Line helper in VSCode for Hugo Static Site generator.
 
+## VSCode Configs (settings.json):
+
+- `gohugo.config`: `string`
+  - Relative path to your Hugo Config TOML file
+  - Default: `config.toml`
+- `gohugo.port`: `number`
+  - Hugo Development server PORT
+  - Default: `3000`
+
 ## Features
 
 Provides following VSCode Commands
@@ -35,6 +44,10 @@ configurations.
 > To open VSCode Command Palette, click
 > - Windows/Linux: `CTRL + SHIFT + P`
 > - MacOS: `CMD + SHIFT + P`
+
+### How to Install
+![How to Install](https://user-images.githubusercontent.com/11786283/113466924-28a98600-945d-11eb-903f-1a71160b3476.gif)
+
 
 ### Create New Content
 ![Create new content](https://user-images.githubusercontent.com/11786283/113461429-2bdf4a80-943a-11eb-81b0-f82b9528fd95.gif)

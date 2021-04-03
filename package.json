@@ -9,7 +9,7 @@
 		"generator"
 	],
 	"description": "Hugo Static Site Generator Commandline Helpers",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"publisher": "phoenisx",
 	"license": "MIT",
 	"homepage": "https://github.com/willofindie/vscode-gohugo",

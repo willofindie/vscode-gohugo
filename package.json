@@ -104,7 +104,6 @@
 	},
 	"devDependencies": {
 		"@rollup/plugin-commonjs": "^18.0.0",
-		"@rollup/plugin-json": "^4.1.0",
 		"@rollup/plugin-node-resolve": "^11.2.1",
 		"@types/adm-zip": "^0.4.33",
 		"@types/css": "^0.0.31",
@@ -132,7 +131,8 @@
 	},
 	"dependencies": {
 		"adm-zip": "^0.5.5",
-		"node-fetch": "^3.0.0-beta.9"
+		"node-fetch": "^3.0.0-beta.9",
+		"original-fs": "^1.1.0"
 	},
 	"lint-staged": {
 		"*.{ts,tsx}": [

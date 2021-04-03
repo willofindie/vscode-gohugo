@@ -1,6 +1,5 @@
 import { commands, ExtensionContext, workspace } from "vscode";
 import * as COMMANDS from "./commands";
-import packageJSON from "../package.json";
 import { CACHE, getConfig, WORKSPACE_FOLDER } from "./constants";
 
 const setup = () => {
@@ -10,7 +9,7 @@ const setup = () => {
 
 export function activate(context: ExtensionContext) {
   setup();
-  const commandNames = packageJSON.contributes.commands;
+  const commandNames = COMMAND_NAMES;
   let i = 0;
   context.subscriptions.push(
     commands.registerCommand(commandNames[i++].command, COMMANDS.getVersion),

@@ -101,35 +101,54 @@ const getAndUpdateTheme = async (gitUrl?: string) => {
     showMessage("Current Workspace is not a HUGO Project", { status: 2 });
     return;
   }
-  try {
-    const matcher = gitUrl.match(
-      /https:\/\/github.com\/[\w\d][\w\d-]*\/(?<name>[\w\d-]+)/
-    );
-    const projectName =
-      matcher && matcher.groups ? matcher.groups.name : "active-theme";
-    const downloadedFolder = resolve(themesPath, projectName);
-    if (!existsSync(downloadedFolder)) {
-      const downloaded = await downloadTheme(
-        "temp_theme.hugo.zip",
-        generateThemeUri(gitUrl)
-      );
-      if (downloaded) {
-        await unzip(downloaded.path, themesPath);
-        await deleteFile(downloaded.path);
-        await renameFile(
-          resolve(themesPath, downloaded.name),
-          downloadedFolder
+  const matcher = gitUrl.match(
+    /https:\/\/github.com\/[\w\d][\w\d-]*\/(?<name>[\w\d-]+)/
+  );
+  const projectName =
+    matcher && matcher.groups ? matcher.groups.name : "active-theme";
+  const downloadedFolder = resolve(themesPath, projectName);
+  await window.withProgress(
+    {
+      location: ProgressLocation.Notification,
+      title: `Applying ${projectName} Theme`,
+      cancellable: false,
+    },
+    async progress => {
+      progress.report({
+        increment: 0,
+        message: `Downloading Theme: ${projectName}`,
+      });
+      if (!existsSync(downloadedFolder)) {
+        const downloaded = await downloadTheme(
+          "temp_theme.hugo.zip",
+          generateThemeUri(gitUrl)
         );
+        if (downloaded) {
+          progress.report({
+            increment: 75,
+            message: `Unzipping Theme: ${projectName}`,
+          });
+          await unzip(downloaded.path, themesPath);
+          progress.report({
+            increment: 95,
+            message: `Deleting temporary downloaded file`,
+          });
+          await deleteFile(downloaded.path);
+          await renameFile(
+            resolve(themesPath, downloaded.name),
+            downloadedFolder
+          );
+          await replaceTomlConfig(configTomlPath, "theme", projectName);
+        }
+      } else {
         await replaceTomlConfig(configTomlPath, "theme", projectName);
-        showMessage(`Active Theme: ${projectName}`);
       }
-    } else {
-      showMessage(`Theme: ${projectName}, Already Exists`);
+      progress.report({
+        increment: 100,
+        message: `Applied Theme: ${projectName}`,
+      });
     }
-  } catch (e) {
-    // NOOP;
-    showMessage(e.message, { status: 2 });
-  }
+  );
 };
 
 export const addTheme = async () => {

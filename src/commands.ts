@@ -1,4 +1,10 @@
-import { QuickPickItem, Uri, window, workspace } from "vscode";
+import {
+  ProgressLocation,
+  QuickPickItem,
+  Uri,
+  window,
+  workspace,
+} from "vscode";
 import { resolve } from "path";
 import {
   deleteFile,
@@ -143,7 +149,16 @@ export const addTheme = async () => {
 export const selectTheme = async () => {
   let gitUrl;
   try {
-    const items = await getHugoThemes();
+    const items = await window.withProgress(
+      {
+        location: ProgressLocation.Window,
+        title: "Fetching Hugo Themes",
+      },
+      progress => {
+        progress.report({ increment: 0 });
+        return getHugoThemes();
+      }
+    );
     const pickerItems = items.map<QuickPickItem>(item => ({
       label: item.name,
       description: item.url,
@@ -192,7 +207,13 @@ export const startServer = async () => {
     toStringArray(parseServerOutput(showMessage), /\r?\n/)
   );
   CACHE.SERVER_PROC_ID.stderr.on("data", onError);
-  CACHE.SERVER_PROC_ID.stderr.on("error", onError);
+  CACHE.SERVER_PROC_ID.stderr.on("error", err => onError(err.message));
+  CACHE.SERVER_PROC_ID.on("close", code => {
+    if (code !== 0) {
+      CACHE.SERVER_PROC_ID?.kill("SIGTERM");
+      CACHE.SERVER_PROC_ID = null;
+    }
+  });
 };
 
 export const stopServer = async (

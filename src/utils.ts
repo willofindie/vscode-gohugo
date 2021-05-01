@@ -1,9 +1,9 @@
 import { window } from "vscode";
 import fs from "fs";
+import path from "path";
 import nodeFetch from "node-fetch";
 import { platform, homedir } from "os";
 import { spawn } from "child_process";
-import { resolve } from "path";
 import { promisify } from "util";
 import Zipper from "adm-zip";
 import { CACHE, WORKSPACE_FOLDER } from "./constants";
@@ -14,6 +14,8 @@ const asyncAppendFile = promisify(fs.appendFile);
 const asyncRmdir = promisify(fs.rmdir);
 const asyncRemove = promisify(fs.unlink);
 const asyncRename = promisify(fs.rename);
+const asyncReaddir = promisify(fs.readdir);
+
 type FetchFn = (
   url: string,
   options?: nodeFetch.RequestInit
@@ -119,7 +121,7 @@ export const downloadTheme = async (
   uri: string
 ): Promise<DownloadedData | null> => {
   try {
-    const filePath = resolve(homedir(), filename);
+    const filePath = path.resolve(homedir(), filename);
     const data = await fetch(uri, {
       headers: { "Content-Type": "application/zip" },
     }).then(res => {
@@ -249,6 +251,7 @@ export const getUserInput: GetUserInputFn = async ({
     return res || defaultRes;
   });
 
+//#region Following util helps to Setup Colors on VSCode terminal
 export enum TermColors {
   BLACK = 0x00,
   BLUE = 0x01,
@@ -275,3 +278,23 @@ export function addColorsToDebugLevels(text: string): string {
     return groups[0];
   });
 }
+//#endregion
+
+//#region Archetype Detector
+/**
+ * Following method helps to get all possible
+ * Archetype templates.
+ */
+export const getArchetypes = async () => {
+  // archetypes
+  const folderPath = path.resolve(WORKSPACE_FOLDER.get(), "archetypes");
+  let templates: string[] = [];
+  try {
+    templates = await asyncReaddir(folderPath);
+  } catch (e) {
+    // Noop
+  }
+  return templates
+    .filter(template => !/default/.test(template))
+    .map(template => path.parse(template).name);
+};

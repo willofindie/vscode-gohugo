@@ -13,6 +13,7 @@ import {
   downloadTheme,
   executeHugo,
   generateThemeUri,
+  getArchetypes,
   getHugoThemes,
   getPlatformName,
   getUserInput,
@@ -26,6 +27,7 @@ import {
 } from "./utils";
 import { CACHE, getConfig, WORKSPACE_FOLDER } from "./constants";
 import { existsSync } from "fs";
+import path from "path";
 
 const onError = (data: Buffer | string) => {
   const _data = data.toString();
@@ -286,11 +288,25 @@ export const stopServer = async (
 const parseContentOutput: ParseFn = fn => outputs => fn(outputs[0]);
 export const createNewContent = async () => {
   let contentPath;
+  const templates = await getArchetypes();
+  let templateFolderName = "";
+  if (templates.length > 0) {
+    templates.unshift("[Default]");
+    templateFolderName =
+      (await window.showQuickPick(templates, {
+        canPickMany: false,
+      })) || "";
+  }
+  const templatePath =
+    !templateFolderName || /\[Default\]/.test(templateFolderName)
+      ? ""
+      : `${templateFolderName}/`;
   try {
+    const arch = templatePath ? `[Archetype: ${templateFolderName}] ` : "";
     contentPath = await getUserInput({
-      prompt: `Enter content path`,
-      placeHolder: "posts/index.md",
-      defaultRes: "posts/index.md",
+      prompt: `${arch}Enter file name: `,
+      placeHolder: `default.md`,
+      defaultRes: "default.md",
     });
   } catch (_) {
     // NOOP
@@ -298,6 +314,11 @@ export const createNewContent = async () => {
 
   if (!contentPath) {
     return;
+  } else {
+    const parsed = path.parse(contentPath);
+    contentPath = !parsed.ext
+      ? `${templatePath}${parsed.name}.md`
+      : parsed.name;
   }
 
   const [get] = getConfig();

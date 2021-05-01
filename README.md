@@ -37,6 +37,10 @@ Provides following VSCode Commands
   - Select themes from Hugo's official list.
 - Create New Content
   - Creates a new Post, or any Content.
+  - Supports Archetypes completely, i.e.
+    - Templates defined under archetypes will be considered, while creating new content
+    - Folder Templates defined as archetypes will be used to
+      spit out folder content, with [--kind](https://gohugo.io/content-management/archetypes/#directory-based-archetypes) option.
 - Start/Stop Debug Server
 - Build
   - Generate Prod Build

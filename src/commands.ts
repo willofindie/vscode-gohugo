@@ -30,10 +30,6 @@ import { existsSync } from "fs";
 import path from "path";
 
 const onError = (data: Buffer | string) => {
-  const _data = data.toString();
-  if (/command not found/.test(_data)) {
-    console.log("Error: ", "Command Not Found: Please install `Hugo`");
-  }
   showMessage(data.toString(), { status: 2 });
 };
 

@@ -13,7 +13,6 @@ export const WORKSPACE_FOLDER = (() => {
   return {
     get: () => DEFAULT_PATH,
     set(newPath?: string) {
-      console.log(newPath);
       DEFAULT_PATH = newPath || homedir();
     },
   };

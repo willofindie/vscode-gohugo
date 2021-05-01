@@ -28,7 +28,6 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(
     workspace.onDidChangeWorkspaceFolders(e => {
       let folderPath;
-      console.log(e.added);
       if (e.added) {
         folderPath = e.added[0].uri.path;
       }

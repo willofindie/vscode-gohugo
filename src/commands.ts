@@ -230,7 +230,7 @@ export const startServer = async () => {
       }
     },
     close: () => {
-      stopServer();
+      CACHE.SERVER_PROC_ID && stopServer();
     },
   };
   CACHE.TERMINAL = window.createTerminal({ name: "GoHugo Server", pty });
@@ -258,7 +258,7 @@ export const startServer = async () => {
       CACHE.SERVER_PROC_ID = null;
     }
   });
-  CACHE.TERMINAL?.show();
+  Config.showTerminal && CACHE.TERMINAL?.show();
 };
 
 export const stopServer = async (

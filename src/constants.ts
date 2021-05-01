@@ -24,6 +24,7 @@ export const EXTENSION_NAME = "gohugo";
 export interface Config {
   configPath: string;
   port: number;
+  showTerminal: boolean;
 }
 export const getConfig = (() => {
   let configs: Config;
@@ -34,6 +35,7 @@ export const getConfig = (() => {
     configs = {
       configPath: resolve(dir, configName),
       port: config.get<number>("port") || 3000,
+      showTerminal: !!config.get<boolean>("showTerminal"),
     };
     return configs;
   };

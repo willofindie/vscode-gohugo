@@ -9,7 +9,7 @@
 		"generator"
 	],
 	"description": "Hugo Static Site Generator Commandline Helpers",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"publisher": "phoenisx",
 	"license": "MIT",
 	"homepage": "https://github.com/willofindie/vscode-gohugo",
@@ -52,6 +52,11 @@
 					"type": "number",
 					"default": 3000,
 					"description": "Hugo development server PORT"
+				},
+				"gohugo.showTerminal": {
+					"type": "boolean",
+					"default": false,
+					"description": "Show Terminal on Hugo Server Start"
 				}
 			}
 		},

@@ -17,6 +17,11 @@ Command Line helper in VSCode for Hugo Static Site generator.
 - `gohugo.port`: `number`
   - Hugo Development server PORT
   - Default: `3000`
+- `gohugo.showTerminal`: `boolean`
+  - Show Terminal on Hugo Server Start. Enable it to show the terminal
+    where Hugo Server is running. If false, terminal is hidden, and can
+    be manually opened by the user, if needed.
+  - Default: `false`
 
 ## Features
 

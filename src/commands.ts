@@ -224,6 +224,11 @@ export const startServer = async () => {
     open: () => {
       // noop
     },
+    handleInput: (data: string) => {
+      if (Buffer.from(data)[0] === 3) {
+        CACHE.TERMINAL?.dispose();
+      }
+    },
     close: () => {
       stopServer();
     },

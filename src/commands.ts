@@ -286,27 +286,35 @@ export const stopServer = async (
 //#endregion Start/Stop Server Commands
 
 const parseContentOutput: ParseFn = fn => outputs => fn(outputs[0]);
+const DEFAULT_ARCHETYPE = { name: "[Default]", ext: "", isDir: false };
 export const createNewContent = async () => {
   let contentPath;
   const templates = await getArchetypes();
-  let templateFolderName = "";
+  let templateFolder = DEFAULT_ARCHETYPE;
   if (templates.length > 0) {
-    templates.unshift("[Default]");
-    templateFolderName =
-      (await window.showQuickPick(templates, {
-        canPickMany: false,
-      })) || "";
+    templates.unshift(DEFAULT_ARCHETYPE);
+    templateFolder =
+      (await window.showQuickPick(
+        templates.map((template, index) => ({
+          label: template.name,
+          description: template.isDir ? "[DIR]" : "",
+          picked: index === 0,
+          ...template,
+        })),
+        {
+          canPickMany: false,
+        }
+      )) || DEFAULT_ARCHETYPE;
   }
-  const templatePath =
-    !templateFolderName || /\[Default\]/.test(templateFolderName)
-      ? ""
-      : `${templateFolderName}/`;
+  const templatePath = /\[Default\]/.test(templateFolder.name)
+    ? ""
+    : `${templateFolder.name}/`;
   try {
-    const arch = templatePath ? `[Archetype: ${templateFolderName}] ` : "";
+    const arch = templatePath ? `[Archetype: ${templateFolder.name}] ` : "";
     contentPath = await getUserInput({
-      prompt: `${arch}Enter file name: `,
-      placeHolder: `default.md`,
-      defaultRes: "default.md",
+      prompt: `${arch}:::: Enter file/folder name: `,
+      placeHolder: `default | default.md`,
+      defaultRes: "default",
     });
   } catch (_) {
     // NOOP
@@ -316,9 +324,13 @@ export const createNewContent = async () => {
     return;
   } else {
     const parsed = path.parse(contentPath);
-    contentPath = !parsed.ext
-      ? `${templatePath}${parsed.name}.md`
-      : parsed.name;
+    if (templateFolder.isDir) {
+      contentPath = `${templatePath}${parsed.name}`;
+    } else {
+      contentPath = !parsed.ext
+        ? `${templatePath}${parsed.name}.md`
+        : parsed.name;
+    }
   }
 
   const [get] = getConfig();
@@ -327,6 +339,7 @@ export const createNewContent = async () => {
   const observer = executeHugo(
     "new",
     `--config ${Config.configPath}`,
+    templateFolder.isDir ? `--kind ${templateFolder.name}` : "",
     contentPath
   );
   observer.stdout.once(

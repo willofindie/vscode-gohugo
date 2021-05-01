@@ -288,13 +288,26 @@ export function addColorsToDebugLevels(text: string): string {
 export const getArchetypes = async () => {
   // archetypes
   const folderPath = path.resolve(WORKSPACE_FOLDER.get(), "archetypes");
-  let templates: string[] = [];
+  let templates: {
+    name: string;
+    ext: string;
+    isDir: boolean; // If not it's a file. Exclude anything else
+  }[] = [];
   try {
-    templates = await asyncReaddir(folderPath);
+    const dirents = await asyncReaddir(folderPath, { withFileTypes: true });
+    templates = dirents
+      .filter(dirent => dirent.isDirectory() || dirent.isFile())
+      .map(dirent => {
+        const parsed = path.parse(dirent.name);
+        return {
+          name: parsed.name,
+          ext: parsed.ext,
+          isDir: dirent.isDirectory(),
+        };
+      });
   } catch (e) {
     // Noop
   }
-  return templates
-    .filter(template => !/default/.test(template))
-    .map(template => path.parse(template).name);
+  return templates.filter(template => !/default/i.test(template.name));
 };
+//#endregion

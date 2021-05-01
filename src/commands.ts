@@ -1,4 +1,5 @@
 import {
+  EventEmitter,
   ProgressLocation,
   QuickPickItem,
   Uri,
@@ -7,6 +8,7 @@ import {
 } from "vscode";
 import { resolve } from "path";
 import {
+  addColorsToDebugLevels,
   deleteFile,
   downloadTheme,
   executeHugo,
@@ -206,6 +208,7 @@ const parseServerOutput: ParseFn = fn => outputs => {
   }
   return Promise.resolve("");
 };
+
 export const startServer = async () => {
   const [get] = getConfig();
   const Config = get();
@@ -215,6 +218,17 @@ export const startServer = async () => {
       { status: 1 }
     );
   }
+  const writeEmitter = new EventEmitter<string>();
+  const pty = {
+    onDidWrite: writeEmitter.event,
+    open: () => {
+      // noop
+    },
+    close: () => {
+      stopServer();
+    },
+  };
+  CACHE.TERMINAL = window.createTerminal({ name: "GoHugo Server", pty });
   CACHE.SERVER_PROC_ID = executeHugo(
     "server",
     "-D",
@@ -223,7 +237,13 @@ export const startServer = async () => {
   );
   CACHE.SERVER_PROC_ID.stdout.on(
     "data",
-    toStringArray(parseServerOutput(showMessage), /\r?\n/)
+    toStringArray((outputs: string[]) => {
+      outputs.forEach(output => {
+        const _output = addColorsToDebugLevels(output);
+        writeEmitter.fire(_output + "\r\n");
+      });
+      return parseServerOutput(showMessage)(outputs);
+    }, /\r?\n/)
   );
   CACHE.SERVER_PROC_ID.stderr.on("data", onError);
   CACHE.SERVER_PROC_ID.stderr.on("error", err => onError(err.message));
@@ -233,6 +253,7 @@ export const startServer = async () => {
       CACHE.SERVER_PROC_ID = null;
     }
   });
+  CACHE.TERMINAL?.show();
 };
 
 export const stopServer = async (
@@ -247,6 +268,7 @@ export const stopServer = async (
   if (CACHE.SERVER_PROC_ID.kill("SIGTERM")) {
     CACHE.SERVER_PROC_ID = null;
     await showMessage(msg || `Server Stopped: Success`, options);
+    CACHE.TERMINAL?.dispose();
   } else {
     showMessage(
       `Unable to Stop Server running at PID: ${CACHE.SERVER_PROC_ID.pid}`,

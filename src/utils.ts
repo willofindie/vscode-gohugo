@@ -248,3 +248,30 @@ export const getUserInput: GetUserInputFn = async ({
     }
     return res || defaultRes;
   });
+
+export enum TermColors {
+  BLACK = 0x00,
+  BLUE = 0x01,
+  GREEN = 0x02,
+  YELLOW = 0x03,
+  CYAN = 0x04,
+  WHITE = 0x05,
+  MAGENTA = 0x06,
+  RED = 0x07,
+}
+export function colorText(text: string, color: TermColors): string {
+  return `\x1b[3${color}m${text}\x1b[0m`;
+}
+
+export function addColorsToDebugLevels(text: string): string {
+  return text.replace(/(warn)|(error)|(info)/gi, (...groups) => {
+    if (groups[1]) {
+      return colorText(groups[1], TermColors.YELLOW);
+    } else if (groups[2]) {
+      return colorText(groups[2], TermColors.RED);
+    } else if (groups[3]) {
+      return colorText(groups[3], TermColors.CYAN);
+    }
+    return groups[0];
+  });
+}

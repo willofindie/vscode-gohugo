@@ -1,7 +1,7 @@
 import { ChildProcessWithoutNullStreams } from "child_process";
 import { homedir } from "os";
 import { resolve } from "path";
-import { workspace } from "vscode";
+import { workspace, Terminal } from "vscode";
 
 export const WORKSPACE_FOLDER = (() => {
   let DEFAULT_PATH = "";
@@ -50,7 +50,9 @@ export const CACHE: {
     name: string;
   }[];
   SERVER_PROC_ID: ChildProcessWithoutNullStreams | null;
+  TERMINAL: Terminal | null;
 } = {
   HUGO_THEMES: [],
   SERVER_PROC_ID: null,
+  TERMINAL: null,
 };

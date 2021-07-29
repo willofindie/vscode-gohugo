@@ -59,8 +59,28 @@ configurations.
 
 
 ### Create New Content
-![Create new content](https://user-images.githubusercontent.com/11786283/113461429-2bdf4a80-943a-11eb-81b0-f82b9528fd95.gif)
 
+__Create new content without Archetypes__
+![Create new content without Archetypes](https://user-images.githubusercontent.com/11786283/127490969-e607b956-df68-4295-9b38-f6c70d51c4d1.gif)
+
+__Create new content with Archetypes__
+![Create new content with Archetypes](https://user-images.githubusercontent.com/11786283/127491034-75828593-795e-4cd3-a16a-75b391a1967f.gif)
+
+#### NOTE:
+Create new content is a special command which supports Archetypes as well as plain default templates.
+User should keep a note of the following 3 things that can happen if using this command:
+
+- Without Archetypes:
+  - When there is no archetype templates, user is free to pass any string path, which can
+    contain filenames or filenames within a subdirectory e.g:
+    - `default` will create a `default.md` file in `contentDir`
+    - `posts/default.txt` will a create a subdirectory `posts` inside `contentDir`, with a file `default.txt` in it.
+- With Archetype:
+  - User can still use Default template with option `[Default]`
+  - User can chose a Archetype Template Directory and input a path where proper files will be created
+  - User can chose a Archetype Template File and input a path with filename.
+    - If a Subdirectory is present in the path, new generated file will be created inside that subdirectory.
+    - If not Subdirectory is not present, file will be generated in `contentDir/`.
 
 ## Issues
 

@@ -321,11 +321,12 @@ export const createNewContent = async () => {
   } else {
     const parsed = path.parse(contentPath);
     if (templateFolder.isDir) {
-      contentPath = `${templatePath}${parsed.name}`;
+      contentPath = `${parsed.dir ? parsed.dir + "/" : ""}${parsed.name}`;
     } else {
-      contentPath = !parsed.ext
-        ? `${templatePath}${parsed.name}.md`
-        : parsed.name;
+      contentPath = !parsed.ext ? `${contentPath}.md` : contentPath;
+      if (templatePath) {
+        contentPath = `${templatePath}${contentPath}`;
+      }
     }
   }
 
